@@ -125,4 +125,4 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL='profile_api.UserProfile' #all authenifications and registration to our project
+AUTH_USER_MODEL = 'profile_api.UserProfile' #all authenifications and registration to our project

@@ -12,8 +12,8 @@ class UserProfileManager(BaseUserManager):
         if not email:
             raise ValueError('Users must have an email address')
 
-        email= self.normalize_email(email)
-        user=self.model(email=email , name=name)
+        email = self.normalize_email(email)
+        user = self.model(email=email , name=name)
 
         user.set_password(password) 
         user.save(using=self._db) #saving objects in django
@@ -23,8 +23,8 @@ class UserProfileManager(BaseUserManager):
         """Create and save a new suoeruser with given details"""
         user=self.create_user(email, name, password)
 
-        user.is_superuser=True #is_superuser and is_staff are created by PermisssionMixin
-        user.is_staff= True
+        user.is_superuser = True #is_superuser and is_staff are created by PermisssionMixin
+        user.is_staff = True
         user.save(using=self.db)
         
         return user
@@ -37,8 +37,10 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
+    objects = UserProfileManager()
+
     USERNAME_FIELD = 'email' #username is replaced by email
-    REQUIRED_FIELDS = ['name', ]
+    REQUIRED_FIELDS = ['name']
 
     def get_full_name(self):
         """Retrieve full name of user"""
