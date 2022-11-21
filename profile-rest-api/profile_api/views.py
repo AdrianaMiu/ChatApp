@@ -4,7 +4,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication #creeaza un token random de fiecare dsts cand userul se logheaza si acest token este adaugat la fiecare request efectuat de user
+from rest_framework import filters
 
+#profile_api
 from profile_api import serializers
 from profile_api import models
 from profile_api import permissions
@@ -105,3 +107,5 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 #specifica cum user se va autentifica
     permission_classes = (permissions.UpdateOwnProfile ,) 
     #ce poate userul sa faca
+    filter_backends = ( filters.SearchFilter,)
+    search_fields = ('name', 'email', )
