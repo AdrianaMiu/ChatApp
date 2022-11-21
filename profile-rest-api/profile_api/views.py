@@ -5,6 +5,8 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication #creeaza un token random de fiecare dsts cand userul se logheaza si acest token este adaugat la fiecare request efectuat de user
 from rest_framework import filters
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.settings import api_settings
 
 #profile_api
 from profile_api import serializers
@@ -109,3 +111,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     #ce poate userul sa faca
     filter_backends = ( filters.SearchFilter,)
     search_fields = ('name', 'email', )
+
+
+class UserLoginApiView(ObtainAuthToken):
+    """Handle creating user authentication tokens"""
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
