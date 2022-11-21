@@ -3,9 +3,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.authentication import TokenAuthentication #creeaza un token random de fiecare dsts cand userul se logheaza si acest token este adaugat la fiecare request efectuat de user
 
 from profile_api import serializers
 from profile_api import models
+from profile_api import permissions
+
 
 
 class HelloApiView(APIView):
@@ -84,7 +87,7 @@ class HelloViewSet(viewsets.ViewSet):
     def update(self, request, pk=None):
         """HAndle updating an object"""
         return Response({'http_method': 'PUT'})
-    
+     
     def partial_update(self, request, pk=None):
         """Handle updating part of an object"""
         return Response({'http_method': 'PATCH'})
@@ -98,3 +101,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     """Handle creating and updating profiles"""
     serializer_class = serializers.UserProfileSerializer #object
     queryset = models.UserProfile.objects.all()
+    authentication_classes = (TokenAuthentication , ) # virgula pt o tupla in loc de un sg item
+#specifica cum user se va autentifica
+    permission_classes = (permissions.UpdateOwnProfile ,) 
+    #ce poate userul sa faca
