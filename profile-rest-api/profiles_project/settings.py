@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'profile_api' ,
-    'rest_framework_swagger' ,
     'drf_yasg' ,
 ]
 
@@ -79,11 +78,15 @@ WSGI_APPLICATION = 'profiles_project.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
+    
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'Profile',
+        'USER': 'user',
+        'PASSWORD': 'admin',
+        'HOST': 'localhost',
+        'PORT': '5432'
+         }
 }
 
 
