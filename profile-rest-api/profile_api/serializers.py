@@ -46,3 +46,7 @@ class ProfileFeedItemSerializer(serializers.ModelSerializer):
         #user_profile is read-only
         extra_kwargs = {'user_profile': {'read_only': True}} #extra key arguments 
 
+class ChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Chat
+        fields = '__all__'

@@ -70,3 +70,21 @@ class ProfileFeedItem(models.Model):
     def __str__(self):
         """Return the model as a string"""
         return self.status_text
+
+class Chat(models.Model):
+
+    class Meta:
+        db_table = 'chat1'
+    
+    sender = models.ForeignKey(
+                        UserProfile ,
+                        on_delete=models.CASCADE ,
+                        related_name="sender",
+                        )
+    receiver = models.ForeignKey(
+                UserProfile ,
+                on_delete=models.CASCADE ,
+                related_name="receiver" ,
+                )
+    message = models.CharField(max_length=1000)
+    timestamp = models.DateTimeField(auto_now_add=True)

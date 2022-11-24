@@ -39,8 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'profile_api' ,
     'drf_yasg' ,
+    #our apps
+    'profile_api' ,
+    'django_elasticsearch_dsl' ,
+
+    
 ]
 
 MIDDLEWARE = [
@@ -73,6 +77,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'profiles_project.wsgi.application'
 
+ELASTICSEARCH_DSL={
+    'default': {
+        'hosts': 'localhost:9200'
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.generics import GenericAPIView
-
+from rest_framework import generics
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -136,4 +136,17 @@ class UserProfileFeedViewSet(viewsets.ModelViewSet):
         """sets the user profile to the logged in user"""
         serializer.save(user_profile=self.request.user)
 
+class ChatList(generics.ListCreateAPIView):
+    queryset = models.Chat.objects.all()
+    serializer_class = serializers.ChatSerializer
 
+    def get_queryset(self):
+        queryset = models.Chat.objects.all()
+        from_id = self.request.query_params.get('from_id')
+        to_id = self.request.query_params.get('to_id')
+        
+        if from_id is not None and to_id is not None:
+            queryset = models.Chat.objects.filter(from_message=from_id,to_message=to_id)
+ #Probably my error is here, because I'm specifying the messages. I need to add something like 'to_message=to_id or from_id
+        
+            return queryset
