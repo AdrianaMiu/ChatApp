@@ -1,110 +1,18 @@
-from django.shortcuts import render
 from rest_framework.generics import GenericAPIView
-from rest_framework import generics
 
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework import viewsets
+from rest_framework import status, viewsets, filters
 from rest_framework.authentication import TokenAuthentication #creeaza un token random de fiecare dsts cand userul se logheaza si acest token este adaugat la fiecare request efectuat de user
-from rest_framework import filters
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 
 
 #profile_api
-from profile_api import serializers
-from profile_api import models
-from profile_api import permissions
+from profile_api import serializers, models, permissions
 
-
-
-class HelloApiView(APIView):
-    """Test API VIew"""
-    serializer_class = serializers.HelloSerializer
-
-    def get(self, request, format=None):
-        """Return a list of APIView features"""
-        an_apiview = [
-            'Uses HTTP method as function (get, post, patch, put, delete)',
-            'Is similar to a traditional Django View',
-            'Gives you the most control over you applocation logic',
-            'Is mapped manually to URLs',
-        ]
-
-        return Response({'message': 'Hello!', 'an_apiview': an_apiview})
-
-    def post(self, request):
-        """Create an hello message with our name"""
-        serializer = self.serializer_class(data=request.data)
-
-        if serializer.is_valid(): #daca inputul este valid
-            name = serializer.validated_data.get('name')
-            message = f'Hello {name}'
-            return Response({'message': message})
-        else:
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST) #for user when tries to submmit an invalid input
-
-    def put(self, request, pk=None): #pk is URL primary key  
-        """Handle updating an object"""
-        return Response({'method':'PUT'})
-
-    def patch(self, request, pk=None):
-        """Handle a partial update of an object"""
-        return Response({'method': 'PATCH'})
-    
-    def delete(self, request, pk=None):
-        """Delete an object"""
-        return Response({'method':'DELETE'})
-
-class HelloViewSet(viewsets.ViewSet):
-
-    """Test API Viewset"""
-    serializer_class= serializers.HelloSerializer
-
-    # a list is tipically a get method to the root of the endpoint linked to our vies\w
-    def list(self, request):
-        """Return a hello message"""
-        a_viewset = [
-            'Uses actions (list, create, retrieve, update, partial_update',
-            'Automatically maps to URLs using Routers',
-            'Provides more functionality with less code',
-        ]
-        return Response({'message':'Hello!', 'a_viewset': a_viewset})
-    
-    def create(self, request):
-        """Create a new hello message"""
-        serializer= self.serializer_class(data=request.data)
-        #validare
-        if serializer.is_valid():
-            name= serializer._validated_data.get('name')
-            message = f'Hello {name}'
-            return Response({'message': message})
-        else:
-            return Response(
-                serializer.errors, 
-                status =status.HTTP_400_BAD_REQUEST
-            )
-
-    def retrieve(self, request, pk=None):
-        """Handle getting an object by its id"""
-        return Response({'http_method':'GET'})
-    
-    def update(self, request, pk=None):
-        """HAndle updating an object"""
-        return Response({'http_method': 'PUT'})
-     
-    def partial_update(self, request, pk=None):
-        """Handle updating part of an object"""
-        return Response({'http_method': 'PATCH'})
-    
-    def destroy(self, request, pk=None):
-        """Handling removing an object"""
-        return Response({'http_method': 'DELETE'})
-
+#elastic
+from elasticsearch_app import *
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     """Handle creating and updating profiles"""
@@ -115,15 +23,16 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.UpdateOwnProfile ,) 
     #ce poate userul sa faca
     filter_backends = ( filters.SearchFilter,)
-    search_fields = ('name', 'email', )
+    search_fields = ('username', )
 
 
 class UserLoginApiView(ObtainAuthToken):
     """Handle creating user authentication tokens"""
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
 
+"""
 class UserProfileFeedViewSet(viewsets.ModelViewSet):
-    """Handles creating, reading and updating profile feed items"""
+   
     authentication_classes = (TokenAuthentication, )
     serializer_class = serializers.ProfileFeedItemSerializer
     queryset = models.ProfileFeedItem.objects.all()
@@ -132,21 +41,37 @@ class UserProfileFeedViewSet(viewsets.ModelViewSet):
         IsAuthenticatedOrReadOnly,
     )
 
+
     def perform_create(self, serializer):
-        """sets the user profile to the logged in user"""
+        
         serializer.save(user_profile=self.request.user)
+"""
 
-class ChatList(generics.ListCreateAPIView):
-    queryset = models.Chat.objects.all()
-    serializer_class = serializers.ChatSerializer
+class MessageApiView(GenericAPIView):
+    """Messages endpoint"""
 
-    def get_queryset(self):
-        queryset = models.Chat.objects.all()
-        from_id = self.request.query_params.get('from_id')
-        to_id = self.request.query_params.get('to_id')
+    serializer_class = serializers.MessageSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    queryset = ""
+
+    def get(self, request, format=None):
+        username = request.user.username
+        return Response(get_messages(es=es, username=username))
         
-        if from_id is not None and to_id is not None:
-            queryset = models.Chat.objects.filter(from_message=from_id,to_message=to_id)
- #Probably my error is here, because I'm specifying the messages. I need to add something like 'to_message=to_id or from_id
         
-            return queryset
+    def post(self, request):
+        serializer=self.serializer_class(data=request.data) 
+        if serializer.is_valid():
+            username_src = request.user.username #userul logat 
+            username_dest = serializer.validated_data.get('username')
+            message = serializer.validated_data.get('message')
+            if models.UserProfile.objects.filter(username=username_dest).exists() and username_src != username_dest:
+                send_messages(es=es, username_src=username_src, username_dest=username_dest, message=message)
+                return Response({'username_src': username_src, 'username_dest': username_dest, 'message': message})
+            elif username_src == username_dest:
+                return Response('You cannot send message to yourself!', status=status.HTTP_406_NOT_ACCEPTABLE)
+            else:
+                return Response(f'User {username_dest} does not exist!', status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 

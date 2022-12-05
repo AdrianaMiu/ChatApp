@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     #our apps
     'profile_api' ,
     'django_elasticsearch_dsl' ,
+    'django_elasticsearch_dsl_drf' ,
 
     
 ]
@@ -90,7 +91,7 @@ DATABASES = {
     
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Profile',
+        'NAME': 'UserProfile',
         'USER': 'user',
         'PASSWORD': 'admin',
         'HOST': 'localhost',

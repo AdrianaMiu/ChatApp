@@ -1,27 +1,25 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
-from django.contrib.auth.models import PermissionsMixin
-from django.contrib.auth.models import BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
+
 
 class UserProfileManager(BaseUserManager):
     """Manager for user profiles"""
 
-    def create_user(self, email, name, password=None):
+    def create_user(self, username, password=None):
         """Create a new user profile"""
-        if not email:
-            raise ValueError('Users must have an email address')
+        if not username:
+            raise ValueError('Users must have an username')
 
-        email = self.normalize_email(email)
-        user = self.model(email=email , name=name)
-
+        
+        user = self.model(username=username)
         user.set_password(password) 
         user.save(using=self._db) #saving objects in django
-
         return user 
-    def create_superuser(self, email, name, password):
-        """Create and save a new suoeruser with given details"""
-        user=self.create_user(email, name, password)
+
+    def create_superuser(self, username, password):
+        """Create a new superuser"""
+        user=self.create_user( username, password)
 
         user.is_superuser = True #is_superuser and is_staff are created by PermisssionMixin
         user.is_staff = True
@@ -32,59 +30,20 @@ class UserProfileManager(BaseUserManager):
 
 class UserProfile(AbstractBaseUser, PermissionsMixin):
     """Database models for users in the system """
-    email = models.EmailField(max_length=255, unique=True)
-    name = models.CharField(max_length=255)
+
+    username = models.CharField(max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
     objects = UserProfileManager()
+    USERNAME_FIELD='username'
 
-    USERNAME_FIELD = 'email' #username is replaced by email
-    REQUIRED_FIELDS = ['name']
-
-    def get_full_name(self):
-        """Retrieve full name of user"""
-        return self.name
+    def get_username(self):
+        """Retrieve username"""
+        return self.username
     
-    def get_short_name(self):
-        """Retrieve short name of user"""
-        return self.name
     
     #Convert an object to a string in Python
     def __str__(self):
         """Return string representation of our user"""
-        return self.email 
-
-
-
-class ProfileFeedItem(models.Model):
-    """Profile status update"""
-    #foreign key pentru a lega 2 modele intre ele , foreign key in db pentru a accesa un model remote
-    user_profile = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE
-    )
-    status_text = models.CharField(max_length=255)
-    created_on = models.DateField(auto_now_add=True)
-
-    def __str__(self):
-        """Return the model as a string"""
-        return self.status_text
-
-class Chat(models.Model):
-
-    class Meta:
-        db_table = 'chat1'
-    
-    sender = models.ForeignKey(
-                        UserProfile ,
-                        on_delete=models.CASCADE ,
-                        related_name="sender",
-                        )
-    receiver = models.ForeignKey(
-                UserProfile ,
-                on_delete=models.CASCADE ,
-                related_name="receiver" ,
-                )
-    message = models.CharField(max_length=1000)
-    timestamp = models.DateTimeField(auto_now_add=True)
+        return self.username 

@@ -1,18 +1,15 @@
 from rest_framework import serializers
 from profile_api import models
+from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
+from .documents import *
 
-class HelloSerializer(serializers.Serializer):
-    """Serializes a name filed for tetsing our APIView"""
-    name = serializers.CharField(max_length=10)
-    
-#model serializare
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """Serializes a user profile object"""
 
     class Meta:
         model = models.UserProfile
-        fields = ('id', 'email', 'name', 'password')
+        fields = ('id', 'username', 'password')
         extra_kwargs = {
             'password': {
                 'write_only':True,
@@ -23,8 +20,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Create and return a new user"""
         user = models.UserProfile.objects.create_user(
-            email = validated_data['email'],
-            name=validated_data['name'],
+            username=validated_data['username'],
             password=validated_data['password']
          )
         return user
@@ -37,16 +33,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
  
         return super().update(instance, validated_data)
 
-
+"""
 class ProfileFeedItemSerializer(serializers.ModelSerializer):
-    """Serializes profile feed items"""
+
     class Meta:
         model = models.ProfileFeedItem
         fields = ('id', 'user_profile' , 'status_text' , 'created_on')
         #user_profile is read-only
         extra_kwargs = {'user_profile': {'read_only': True}} #extra key arguments 
-
-class ChatSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Chat
-        fields = '__all__'
+"""
+class MessageSerializer(serializers.Serializer): #ModelSerializer asks for class Meta
+    """Serializes a message"""
+    username = serializers.CharField(max_length=255)
+    message = serializers.CharField(max_length=2048)
